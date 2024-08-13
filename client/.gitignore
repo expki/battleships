@@ -4,3 +4,4 @@ public/*
 
 *.js
 !webpack.config.js
+!src/wasm_exec.js

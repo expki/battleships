@@ -21,8 +21,18 @@ function main(ev: Event) {
     ctx.imageSmoothingEnabled= false;
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // Start game loop
-    gameLoop();
+    // Start game logic
+    const logic = new Worker(new URL("./logic.ts", import.meta.url), { type: "module" });
+    logic.onmessage = (ev) => {
+        console.log(ev);
+    }
+    fetch('logic.wasm').then(response =>
+        response.arrayBuffer()
+    ).then(bytes => {
+        logic.postMessage({ wasmModule: bytes });
+    });
+    // Start render loop
+    renderLoop();
 }
 
 function resizeScreen() {
@@ -30,7 +40,7 @@ function resizeScreen() {
     if (canvas.width !== window.innerWidth) canvas.width = window.innerWidth; 
 }
 
-async function gameLoop(): Promise<void> {
+async function renderLoop(): Promise<void> {
     // Clear canvas
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -38,7 +48,7 @@ async function gameLoop(): Promise<void> {
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, 100, 100);
     // Request next frame
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(renderLoop);
 }
 
 addEventListener("load", main);
