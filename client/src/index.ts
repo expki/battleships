@@ -29,7 +29,7 @@ function main(ev: Event) {
     fetch('logic.wasm').then(response =>
         response.arrayBuffer()
     ).then(bytes => {
-        logic.postMessage({ wasmModule: bytes });
+        logic.postMessage({ payload: bytes });
     });
     // Start render loop
     renderLoop();
