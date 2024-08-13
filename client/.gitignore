@@ -1,2 +1,6 @@
-wasm_exec.js
-*.wasm
+node_modules/
+dist/*
+public/*
+
+*.js
+!webpack.config.js

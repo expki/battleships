@@ -18,7 +18,7 @@
 package main
 
 import (
-	"battleships/engine"
+	"battleships/userinput"
 	"context"
 	"fmt"
 	"log"
@@ -61,38 +61,10 @@ type Websocket struct {
 }
 
 func main() {
-	// Run engine
-	_ = engine.NewEngine()
+	// Listen to user input
+	input := userinput.New()
+	defer input.Close()
 	select {}
-
-	// Define the keyboard event handler for keydown
-	keyDownHandler := js.FuncOf(func(this js.Value, args []js.Value) any {
-		event := args[0]
-		key := event.Get("key").String()
-		println("Key down:", key)
-		return nil
-	})
-	defer keyDownHandler.Release()
-	js.Global().Get("document").Call("addEventListener", "keydown", keyDownHandler)
-
-	// Define the keyboard event handler for keyup
-	keyUpHandler := js.FuncOf(func(this js.Value, args []js.Value) any {
-		event := args[0]
-		key := event.Get("key").String()
-		println("Key up:", key)
-		return nil
-	})
-	defer keyUpHandler.Release()
-	js.Global().Get("document").Call("addEventListener", "keyup", keyUpHandler)
-
-	// Define the keyboard event handler for keyup
-	clickHandler := js.FuncOf(func(this js.Value, args []js.Value) any {
-		event := args[0]
-		println("Click:", event.Get("x").Int(), event.Get("y").Int())
-		return nil
-	})
-	defer clickHandler.Release()
-	js.Global().Get("document").Call("addEventListener", "click", clickHandler)
 
 	// Define the websocket event handler
 	uri, err := websocketURL()

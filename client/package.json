@@ -1,0 +1,45 @@
+{
+  "name": "battleships",
+  "version": "1.0.0",
+  "description": "Battleships web client",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "rm -r public/*;cp $(go env GOROOT)/misc/wasm/wasm_exec.js public/ && GOOS=js GOARCH=wasm go build -ldflags=\"-X 'main.port=8001'\" -o public/battleships.wasm . && webpack-dev-server --open",
+    "test": "echo \"Error: no tests\" && exit 0",
+    "build": "rm -r dist/*;webpack --mode=production --node-env=production && cp $(go env GOROOT)/misc/wasm/wasm_exec.js dist/ && GOOS=js GOARCH=wasm go build -trimpath -ldflags=\"-s -w\" -o dist/battleships.wasm ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/expki/battleships.git"
+  },
+  "keywords": [
+    "typescript",
+    "go"
+  ],
+  "author": "expki",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/expki/battleships/issues"
+  },
+  "homepage": "https://github.com/expki/battleships#readme",
+  "devDependencies": {
+    "@types/expect": "^1.20.4",
+    "@types/vinyl": "^2.0.12",
+    "@webpack-cli/generators": "^3.0.7",
+    "autoprefixer": "^10.4.16",
+    "css-loader": "^6.8.1",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.5.3",
+    "mini-css-extract-plugin": "^2.7.6",
+    "postcss": "^8.4.31",
+    "postcss-loader": "^7.3.3",
+    "prettier": "^3.1.0",
+    "style-loader": "^3.3.3",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.2.2",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1",
+    "workbox-webpack-plugin": "^7.0.0"
+  }
+}

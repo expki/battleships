@@ -7,15 +7,26 @@
 	<meta name="description" content="Prototype PLotter with GO, Canvas and WebAssembly" />
 	<meta name="theme-color" content="#000000" />
 	<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent scrollbars */
+        }
+        canvas {
+            display: block; /* Remove inline-block space */
+        }
+    </style>
     <script>
         async function loadWasm(filename) {
-            const go = new Go(); // Instantiate the Go object
+            const go = new Go();
             let result = await WebAssembly.instantiateStreaming(fetch(filename), go.importObject);
             go.run(result.instance);
         }
     </script>
 </head>
 <body onload="loadWasm('battleships.wasm');">
-    <script src="wasm_exec.js"></script> <!-- This script is necessary and provided in your Go installation -->
+    <canvas id="main"></canvas>
+    <script src="wasm_exec.js"></script>
 </body>
 </html>
