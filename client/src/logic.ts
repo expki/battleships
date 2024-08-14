@@ -1,44 +1,26 @@
 import './wasm_exec';
+import * as enums from './enums';
+import type * as types from './types';
+
 declare class Go {
     importObject: WebAssembly.Imports;
     run(instance: WebAssembly.Instance): void;
 }
 
-type payload<T> = {
-    kind: PayloadKind, 
-    payload: T,
-};
+declare function handleInput(payload: types.PayloadInput): void;
 
-enum PayloadKind {
-    wasm = 0,
-    resize = 1,
-    keyUp = 2,
-    keyDown = 3,
-    mouseUp = 4,
-    contextUp = 6,
-}
-
-type PayloadWasm = ArrayBuffer;
-type PayloadResize = {
-    width: number,
-    height: number,
-};
-type PayloadKeyUp = string;
-type PayloadKeyDown = string;
-type PayloadMouseUp = boolean;
-type PayloadContextUp = boolean;
-
-self.onmessage = async (event: MessageEvent<payload<any>>) => {
+self.onmessage = async (event: MessageEvent<types.Payload<any>>) => {
     switch (event.data.kind) {
-        case PayloadKind.wasm: {
-            const payload: PayloadWasm = event.data.payload;
+        case enums.PayloadKind.wasm: {
+            const payload: types.PayloadWasm = event.data.payload;
             const go = new Go();
             const result = await WebAssembly.instantiate(payload, go.importObject);
             go.run(result.instance);
             return;
         }            
-        case PayloadKind.resize: {
-            const payload: PayloadResize = event.data.payload;
+        case enums.PayloadKind.input: {
+            const payload: types.PayloadInput = event.data.payload;
+            handleInput(payload);
             return;
         }
         default:
