@@ -114,7 +114,6 @@ async function main(ev: Event) {
         const payload: types.Payload<types.PayloadInput> = {
             kind: enums.PayloadKind.input,
             payload: {
-                mouseEpoch: ev.timeStamp,
                 mousex: ev.clientX,
                 mousey: ev.clientY,
             },
@@ -149,6 +148,15 @@ async function main(ev: Event) {
             resizeScreen(window.innerWidth, window.innerHeight);
         }, 500);
     });
+    // Set initial values
+    const intial: types.Payload<types.PayloadInput> = {
+        kind: enums.PayloadKind.input,
+        payload: {
+            width: window.innerWidth,
+            height: window.innerHeight,
+        },
+    };
+    logic.postMessage(intial);
     // Start render loop
     renderLoop();
 }

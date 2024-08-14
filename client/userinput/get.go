@@ -1,13 +1,37 @@
 package userinput
 
-func (u *UserInput) GetWindowWidth() int {
+func (u *UserInput) GetWidth() int {
 	u.lock.RLock()
 	defer u.lock.RUnlock()
-	return u.windowWidth
+	return u.width
 }
 
-func (u *UserInput) GetWindowHeight() int {
+func (u *UserInput) GetHeight() int {
 	u.lock.RLock()
 	defer u.lock.RUnlock()
-	return u.windowHeight
+	return u.height
+}
+
+func (u *UserInput) GetKey(k string) (v bool) {
+	u.lock.RLock()
+	defer u.lock.RUnlock()
+	return u.key[k]
+}
+
+func (u *UserInput) GetMouseLeft() bool {
+	u.lock.RLock()
+	defer u.lock.RUnlock()
+	return u.mouseleft
+}
+
+func (u *UserInput) GetMouseX() int {
+	u.lock.RLock()
+	defer u.lock.RUnlock()
+	return u.mousex
+}
+
+func (u *UserInput) GetMouseY() int {
+	u.lock.RLock()
+	defer u.lock.RUnlock()
+	return u.mousey
 }

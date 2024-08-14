@@ -17,10 +17,12 @@ self.onmessage = async (event: MessageEvent<types.Payload<any>>) => {
             const result = await WebAssembly.instantiate(payload, go.importObject);
             go.run(result.instance);
             return;
-        }            
+        }
         case enums.PayloadKind.input: {
             const payload: types.PayloadInput = event.data.payload;
-            handleInput(payload);
+            try {
+                handleInput(payload);
+            } catch (_) {}
             return;
         }
         default:

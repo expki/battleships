@@ -11,7 +11,6 @@ export type PayloadInput = {
     keyup?: string,
     keydown?: string,
     mouseleft?: boolean,
-    mouseEpoch?: number,
     mousex?: number,
     mousey?: number,
 };
