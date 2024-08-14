@@ -1,7 +1,6 @@
 package userinput
 
 import (
-	"fmt"
 	"sync"
 	"syscall/js"
 )
@@ -48,7 +47,6 @@ func New() *UserInput {
 		if value := arg.Get("mousey"); !value.IsUndefined() {
 			u.setMouseY(value.Int())
 		}
-		fmt.Printf("%+v\n", &u)
 		return nil
 	})
 	window.Set("handleInput", u.handle)

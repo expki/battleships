@@ -47,6 +47,12 @@ func main() {
 	// Listen to user input
 	input := userinput.New()
 	defer input.Close()
+
+	// Run game tick
+	for {
+		js.Global().Get("self").Call("postMessage", "test")
+		time.Sleep(time.Second)
+	}
 	select {}
 
 	// Define the websocket event handler

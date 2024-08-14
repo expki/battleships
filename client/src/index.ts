@@ -20,7 +20,7 @@ async function main(ev: Event) {
     // Start game logic
     const logic = new Worker(new URL("./logic.ts", import.meta.url), { type: "module" });
     logic.onmessage = (ev) => {
-        console.log(ev);
+        console.log(ev.data);
     }
     const bytes = await fetch('logic.wasm').then(response => response.arrayBuffer());
     const payload: types.Payload<types.PayloadWasm> = {
