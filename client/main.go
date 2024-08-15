@@ -48,9 +48,15 @@ func main() {
 	input := userinput.New()
 	defer input.Close()
 
+	// Setup write
+	buffer := js.Global().Get("SharedArrayBuffer").New(1024)
+	uint8Array := js.Global().Get("Uint8Array").New(buffer)
+	js.Global().Get("self").Call("postMessage", buffer)
+
 	// Run game tick
 	for {
-		js.Global().Get("self").Call("postMessage", "test")
+		data := []byte("Hello from Go!")
+		js.CopyBytesToJS(uint8Array, data)
 		time.Sleep(time.Second)
 	}
 	select {}

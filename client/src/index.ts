@@ -1,8 +1,16 @@
+import { decode } from './encoding';
 import * as enums from './enums';
 import type * as types from './types';
 
+if (!crossOriginIsolated) {
+    console.error("sharredArrayBuffer is not available");
+}
+
 const canvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById('main');
 const ctx: CanvasRenderingContext2D = canvas.getContext("2d");
+
+// Create a SharedArrayBuffer
+const sharedBuffer = new SharedArrayBuffer(1024); // 1KB buffer
 
 async function main(ev: Event) {
     // Check if canvas is supported
@@ -20,12 +28,15 @@ async function main(ev: Event) {
     // Start game logic
     const logic = new Worker(new URL("./logic.ts", import.meta.url), { type: "module" });
     logic.onmessage = (ev) => {
-        console.log(ev.data);
+        console.log("message:", ev.data);
     }
     const bytes = await fetch('logic.wasm').then(response => response.arrayBuffer());
     const payload: types.Payload<types.PayloadWasm> = {
         kind: enums.PayloadKind.wasm,
-        payload: bytes,
+        payload: {
+            wasm: bytes,
+            pipe: sharedBuffer,
+        },
     };
     logic.postMessage(payload)
     // Register input events
@@ -173,3 +184,11 @@ async function renderLoop(): Promise<void> {
 }
 
 addEventListener("load", main);
+
+setInterval(() => {
+    const sharedBytes = new Uint8Array(sharedBuffer);
+    const bytes = new Uint8Array(sharedBytes.length);
+    bytes.set(sharedBytes);
+    const data = decode(bytes)
+    console.log(data);
+}, 1000);

@@ -3,7 +3,10 @@ export type Payload<T> = {
     payload: T,
 };
 
-export type PayloadWasm = ArrayBuffer;
+export type PayloadWasm = {
+    wasm: ArrayBuffer,
+    pipe: SharedArrayBuffer,
+};
 
 export type PayloadInput = {
     width?: number,
