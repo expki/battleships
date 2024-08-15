@@ -1,4 +1,4 @@
-import { decode } from './encoding';
+import { Decode } from '../encoding/decoder';
 import * as enums from './enums';
 import type * as types from './types';
 
@@ -189,6 +189,6 @@ setInterval(() => {
     const sharedBytes = new Uint8Array(sharedBuffer);
     const bytes = new Uint8Array(sharedBytes.length);
     bytes.set(sharedBytes);
-    const data = decode(bytes)
+    const data = Decode(bytes)
     console.log(data);
 }, 1000);

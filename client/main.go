@@ -1,6 +1,7 @@
 package main
 
 import (
+	xencoding "battleships/encoding"
 	"battleships/userinput"
 	"context"
 	"fmt"
@@ -48,15 +49,14 @@ func main() {
 	input := userinput.New()
 	defer input.Close()
 
-	// Setup write
-	buffer := js.Global().Get("SharedArrayBuffer").New(1024)
-	uint8Array := js.Global().Get("Uint8Array").New(buffer)
-	js.Global().Get("self").Call("postMessage", buffer)
+	// Get sharedArray
+	sharedArray := js.Global().Get("sharedArray")
 
 	// Run game tick
-	for {
-		data := []byte("Hello from Go!")
-		js.CopyBytesToJS(uint8Array, data)
+	for i := 0; true; i++ {
+		// Get bytes
+		data := xencoding.Encode(fmt.Sprintf("Hello from Go!: %d", i))
+		js.CopyBytesToJS(sharedArray, data)
 		time.Sleep(time.Second)
 	}
 	select {}

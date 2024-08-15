@@ -11,14 +11,10 @@ enum Type {
     object = 9,
 }
 
-// decode implements a custom decoding scheme for the wasm worker
-export function decode<T = any>(binary: Uint8Array): T {
+// Decode implements a custom decoding scheme for the wasm worker
+export function Decode<T = any>(binary: Uint8Array): T {
     let output: any = undefined;
     switch (binary[0]) {
-        case Type.null: {
-            output = null;
-            break;
-        }
         case Type.bool: {
             output = Boolean(binary[1]);
             break;
@@ -52,7 +48,7 @@ export function decode<T = any>(binary: Uint8Array): T {
             let offset = 5;
             for (let idx = 0; idx < array.length; idx++) {
                 const valueLength = new DataView(binary.buffer).getUint32(offset, true);
-                array[idx] = decode(binary.slice(offset + 4, offset + 4 + valueLength));
+                array[idx] = Decode(binary.slice(offset + 4, offset + 4 + valueLength));
                 offset += valueLength + 4;
             }
             output = array;
@@ -65,7 +61,7 @@ export function decode<T = any>(binary: Uint8Array): T {
                 const keyLength = new DataView(binary.buffer).getUint32(offset + 1, true);
                 const key = new TextDecoder().decode(binary.slice(offset + 5, offset + 5 + keyLength));
                 const valueLength = new DataView(binary.buffer).getUint32(offset + 5 + keyLength, true);
-                const value = decode(binary.slice(offset + 9 + keyLength, offset + 9 + keyLength + valueLength));
+                const value = Decode(binary.slice(offset + 9 + keyLength, offset + 9 + keyLength + valueLength));
                 obj[key] = value;
             }
             output = obj;
