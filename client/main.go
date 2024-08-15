@@ -55,7 +55,11 @@ func main() {
 	// Run game tick
 	for i := 0; true; i++ {
 		// Get bytes
-		data := xencoding.Encode(fmt.Sprintf("Hello from Go!: %d", i))
+		data := xencoding.Encode(struct {
+			A int
+			B float32
+			C map[string]float32
+		}{A: i, B: 3.14, C: map[string]float32{"hello": 3.14}})
 		js.CopyBytesToJS(sharedArray, data)
 		time.Sleep(time.Second)
 	}

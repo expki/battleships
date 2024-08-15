@@ -22,14 +22,51 @@ const (
 )
 
 // Encode implements a custom encoding scheme for the wasm worker
-func Encode[T bool | int | float32 | []byte | string | []any | any](data T) (encoded []byte) {
+func Encode[T bool | int | float32 | []byte | string | []any | map[string]any | any](data T) (encoded []byte) {
+	value := reflect.ValueOf(data)
+	switch value.Kind() {
+	case reflect.Array, reflect.Slice:
+		encoded = make([]byte, 5)
+		encoded[0] = byte(Type_array)
+		binary.LittleEndian.PutUint32(encoded[1:5], uint32(value.Len()))
+		for i := 0; i < value.Len(); i++ {
+			encoded = append(encoded, arrayValue(value.Index(i).Interface())...)
+		}
+		return encoded
+	case reflect.Struct:
+		objType := value.Type()
+		data := make([]byte, 0)
+		for i := 0; i < value.NumField(); i++ {
+			info := objType.Field(i)
+			if !info.IsExported() {
+				continue
+			}
+			fieldValue := value.Field(i)
+			data = append(data, objValue(info.Name, fieldValue.Interface())...)
+		}
+		encoded = make([]byte, 5+len(data))
+		encoded[0] = byte(Type_object)
+		binary.LittleEndian.PutUint32(encoded[1:5], uint32(len(data)))
+		copy(encoded[5:], data)
+		return encoded
+	case reflect.Map:
+		data := make([]byte, 0)
+		for _, key := range value.MapKeys() {
+			data = append(data, objValue(key.String(), value.MapIndex(key).Interface())...)
+		}
+		encoded = make([]byte, 5+len(data))
+		encoded[0] = byte(Type_object)
+		binary.LittleEndian.PutUint32(encoded[1:5], uint32(len(data)))
+		copy(encoded[5:], data)
+		return encoded
+	}
 
 	switch v := any(data).(type) {
 	case bool:
 		if v {
 			encoded = []byte{byte(Type_bool), 1}
 		} else {
-			encoded = []byte{byte(Type_bool), 1}
+			encoded = []byte{byte(Type_bool), 0}
 		}
 	case int:
 		if v > math.MaxInt32 || v < math.MinInt32 {
@@ -51,30 +88,19 @@ func Encode[T bool | int | float32 | []byte | string | []any | any](data T) (enc
 		encoded[0] = byte(Type_float32)
 		binary.LittleEndian.PutUint32(encoded[1:], math.Float32bits(v))
 	case []byte:
-		encoded = make([]byte, 1+len(v))
+		encoded = make([]byte, 5+len(v))
 		encoded[0] = byte(Type_buffer)
-		copy(encoded[1:], v)
+		itemLen := uint32(len(v))
+		binary.LittleEndian.PutUint32(encoded[1:5], itemLen)
+		copy(encoded[5:], v)
 	case string:
-		encoded = make([]byte, 1+len(v))
+		encoded = make([]byte, 5+len(v))
 		encoded[0] = byte(Type_string)
-		copy(encoded[1:], v)
-	case []any:
-		encoded = []byte{byte(Type_array), byte(len(v))}
-		for _, item := range v {
-			encoded = append(encoded, arrayValue(item)...)
-		}
+		itemLen := uint32(len(v))
+		binary.LittleEndian.PutUint32(encoded[1:5], itemLen)
+		copy(encoded[5:], v)
 	case any:
-		if reflect.TypeOf(v).Kind() != reflect.Struct {
-			return []byte{byte(Type_null)}
-		}
-		encoded = []byte{byte(Type_object)}
-		obj := reflect.ValueOf(v)
-		objType := obj.Type()
-		for i := 0; i < obj.NumField(); i++ {
-			fieldName := objType.Field(i).Name
-			fieldValue := obj.Field(i)
-			encoded = append(encoded, objValue(fieldName, fieldValue)...)
-		}
+		encoded = []byte{byte(Type_null)}
 	}
 	return encoded
 }

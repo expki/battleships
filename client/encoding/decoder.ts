@@ -36,11 +36,13 @@ export function Decode<T = any>(binary: Uint8Array): T {
             break;
         }
         case Type.buffer: {
-            output = binary.slice(1);
+            const length = new DataView(binary.buffer).getUint32(1, true);
+            output = binary.slice(5, 5 + length);
             break;
         }
         case Type.string: {
-            output = new TextDecoder().decode(binary.slice(1));
+            const length = new DataView(binary.buffer).getUint32(1, true);
+            output = new TextDecoder().decode(binary.slice(5, 5 + length));
             break;
         }
         case Type.array: {
@@ -56,13 +58,15 @@ export function Decode<T = any>(binary: Uint8Array): T {
         }
         case Type.object: {
             const obj: Record<string, unknown> = {};
-            let offset = 1;
-            while (binary[offset] === 0) {
+            const maxLength = new DataView(binary.buffer).getUint32(1, true);
+            let offset = 5;
+            while (offset < maxLength + 5) {
                 const keyLength = new DataView(binary.buffer).getUint32(offset + 1, true);
                 const key = new TextDecoder().decode(binary.slice(offset + 5, offset + 5 + keyLength));
                 const valueLength = new DataView(binary.buffer).getUint32(offset + 5 + keyLength, true);
                 const value = Decode(binary.slice(offset + 9 + keyLength, offset + 9 + keyLength + valueLength));
                 obj[key] = value;
+                offset += 9 + keyLength + valueLength;
             }
             output = obj;
             break;
