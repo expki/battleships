@@ -22,7 +22,7 @@ const (
 )
 
 // Encode implements a custom encoding scheme for the wasm worker
-func Encode[T bool | int | float32 | []byte | string | []any | map[string]any | any](data T) (encoded []byte) {
+func Encode(data any) (encoded []byte) {
 	value := reflect.ValueOf(data)
 	switch value.Kind() {
 	case reflect.Pointer:
