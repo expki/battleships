@@ -25,7 +25,78 @@ const (
 func Encode[T bool | int | float32 | []byte | string | []any | map[string]any | any](data T) (encoded []byte) {
 	value := reflect.ValueOf(data)
 	switch value.Kind() {
-	case reflect.Array, reflect.Slice:
+	case reflect.Pointer:
+		if value.IsNil() {
+			return []byte{byte(Type_null)}
+		}
+		return Encode(value.Elem().Interface())
+	case reflect.Bool:
+		if value.Bool() {
+			return []byte{byte(Type_bool), 1}
+		}
+		return []byte{byte(Type_bool), 0}
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		v := value.Int()
+		if v > math.MaxInt32 || v < math.MinInt32 {
+			// encode int64
+			encoded = make([]byte, 9)
+			encoded[0] = byte(Type_int64)
+			binary.LittleEndian.PutUint64(encoded[1:], uint64(v))
+		} else if v > math.MaxUint8 || v < 0 {
+			// encode int32
+			encoded = make([]byte, 5)
+			encoded[0] = byte(Type_int32)
+			binary.LittleEndian.PutUint32(encoded[1:], uint32(v))
+		} else {
+			// encode uint8
+			encoded = []byte{byte(Type_uint8), byte(v)}
+		}
+		return encoded
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		v := value.Uint()
+		if v > math.MaxInt32 {
+			// encode int64
+			encoded = make([]byte, 9)
+			encoded[0] = byte(Type_int64)
+			binary.LittleEndian.PutUint64(encoded[1:], uint64(v))
+		} else if v > math.MaxUint8 {
+			// encode int32
+			encoded = make([]byte, 5)
+			encoded[0] = byte(Type_int32)
+			binary.LittleEndian.PutUint32(encoded[1:], uint32(v))
+		} else {
+			// encode uint8
+			encoded = []byte{byte(Type_uint8), byte(v)}
+		}
+		return encoded
+	case reflect.Float32, reflect.Float64:
+		encoded = make([]byte, 5)
+		encoded[0] = byte(Type_float32)
+		binary.LittleEndian.PutUint32(encoded[1:], math.Float32bits(float32(value.Float())))
+		return encoded
+	case reflect.String:
+		v := value.String()
+		encoded = make([]byte, 5+len(v))
+		encoded[0] = byte(Type_string)
+		itemLen := uint32(len(v))
+		binary.LittleEndian.PutUint32(encoded[1:5], itemLen)
+		copy(encoded[5:], v)
+		return encoded
+	case reflect.Slice:
+		if value.IsNil() {
+			return []byte{byte(Type_null)}
+		}
+		fallthrough
+	case reflect.Array:
+		if value.Type().Elem().Kind() == reflect.Uint8 { // Handle []byte
+			v := value.Bytes()
+			encoded = make([]byte, 5+len(v))
+			encoded[0] = byte(Type_buffer)
+			itemLen := uint32(len(v))
+			binary.LittleEndian.PutUint32(encoded[1:5], itemLen)
+			copy(encoded[5:], v)
+			return encoded
+		}
 		encoded = make([]byte, 5)
 		encoded[0] = byte(Type_array)
 		binary.LittleEndian.PutUint32(encoded[1:5], uint32(value.Len()))
@@ -59,48 +130,6 @@ func Encode[T bool | int | float32 | []byte | string | []any | map[string]any | 
 		binary.LittleEndian.PutUint32(encoded[1:5], uint32(len(data)))
 		copy(encoded[5:], data)
 		return encoded
-	}
-
-	switch v := any(data).(type) {
-	case bool:
-		if v {
-			encoded = []byte{byte(Type_bool), 1}
-		} else {
-			encoded = []byte{byte(Type_bool), 0}
-		}
-	case int:
-		if v > math.MaxInt32 || v < math.MinInt32 {
-			// encode int64
-			encoded = make([]byte, 9)
-			encoded[0] = byte(Type_int64)
-			binary.LittleEndian.PutUint64(encoded[1:], uint64(v))
-		} else if v > math.MaxUint8 || v < 0 {
-			// encode int32
-			encoded = make([]byte, 5)
-			encoded[0] = byte(Type_int32)
-			binary.LittleEndian.PutUint32(encoded[1:], uint32(v))
-		} else {
-			// encode uint8
-			encoded = []byte{byte(Type_uint8), byte(v)}
-		}
-	case float32:
-		encoded = make([]byte, 5)
-		encoded[0] = byte(Type_float32)
-		binary.LittleEndian.PutUint32(encoded[1:], math.Float32bits(v))
-	case []byte:
-		encoded = make([]byte, 5+len(v))
-		encoded[0] = byte(Type_buffer)
-		itemLen := uint32(len(v))
-		binary.LittleEndian.PutUint32(encoded[1:5], itemLen)
-		copy(encoded[5:], v)
-	case string:
-		encoded = make([]byte, 5+len(v))
-		encoded[0] = byte(Type_string)
-		itemLen := uint32(len(v))
-		binary.LittleEndian.PutUint32(encoded[1:5], itemLen)
-		copy(encoded[5:], v)
-	case any:
-		encoded = []byte{byte(Type_null)}
 	}
 	return encoded
 }
