@@ -1,6 +1,6 @@
-import './wasm_exec';
-import * as enums from './enums';
-import type * as types from './types';
+import '../../public/wasm_exec';
+import * as enums from '../types/enums';
+import type * as types from '../types/types';
 
 declare global {
     var sharedArray: Uint8Array | undefined;

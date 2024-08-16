@@ -1,8 +1,8 @@
 package main
 
 import (
-	xencoding "battleships/encoding"
-	"battleships/userinput"
+	xencoding "battleships/src/encoding"
+	"battleships/src/userinput"
 	"context"
 	"fmt"
 	"log"
@@ -85,27 +85,4 @@ func main() {
 	c.Close(websocket.StatusNormalClosure, "")
 
 	select {}
-}
-
-func getFrameTime() time.Duration {
-	const count = 20
-	var n uint8
-	var start time.Time
-	done := make(chan struct{})
-	var fn js.Func
-	fn = js.FuncOf(func(this js.Value, args []js.Value) (void any) {
-		if n == 0 {
-			start = time.Now()
-		} else if n >= count {
-			close(done)
-			return
-		}
-		js.Global().Call("requestAnimationFrame", fn)
-		n++
-		return
-	})
-	js.Global().Call("requestAnimationFrame", fn)
-	<-done
-	fn.Release()
-	return time.Since(start) / count
 }
